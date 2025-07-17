@@ -1,4 +1,11 @@
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
+
+// Running Electron as root without disabling sandbox will cause a crash.
+// Append the `no-sandbox` switch when detected to allow development in
+// containerised environments where the process typically runs as root.
+if (process.getuid && process.getuid() === 0) {
+  app.commandLine.appendSwitch('no-sandbox')
+}
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
