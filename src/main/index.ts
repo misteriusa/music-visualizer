@@ -63,13 +63,13 @@ app.whenReady().then(() => {
     const { canceled, filePaths } = await dialog.showOpenDialog({
       properties: ['openFile'],
       filters: [{ name: 'Audio Files', extensions: ['mp3', 'wav', 'ogg'] }]
-    });
+    })
     if (canceled) {
-      return null;
+      return null
     } else {
-      return filePaths[0];
+      return filePaths[0]
     }
-  });
+  })
 
   createWindow()
 
