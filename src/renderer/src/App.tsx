@@ -30,6 +30,7 @@ function App(): React.JSX.Element {
   const drawVisualization = useCallback((): void => {
     const canvas = canvasRef.current
     if (!canvas || !analyserRef.current) return
+
     const ctx = canvas.getContext('2d')!
     const bufferLength = analyserRef.current.frequencyBinCount
     const dataArray = new Uint8Array(bufferLength)
@@ -39,9 +40,13 @@ function App(): React.JSX.Element {
     const barWidth = (canvas.width / bufferLength) * 2.5
     let x = 0
 
+    const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0)
+    gradient.addColorStop(0, '#00ffff')
+    gradient.addColorStop(1, '#ff00ff')
+    ctx.fillStyle = gradient
+
     for (let i = 0; i < bufferLength; i++) {
       const barHeight = dataArray[i]
-      ctx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`
       ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2)
       x += barWidth + 1
     }
@@ -87,13 +92,13 @@ function App(): React.JSX.Element {
   }
 
   const Visualizer = (): React.JSX.Element => (
-    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+    <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-fuchsia-600 rounded-lg flex items-center justify-center">
       <canvas ref={canvasRef} className="w-full h-full" />
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div data-theme="cyberpunk" className="min-h-screen bg-background flex flex-col">
       <PanelGroup direction="horizontal" className="flex-1">
         <Panel defaultSize={20} minSize={15} className="bg-secondary p-4">
           <h2 className="text-lg font-bold mb-2">Tracks</h2>
