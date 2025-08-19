@@ -27,39 +27,46 @@ function App(): React.JSX.Element {
     }
   }, [audioFile])
 
+  /**
+   * Render frequency data as colorful bars across the canvas.
+   */
   const drawVisualization = useCallback((): void => {
     const canvas = canvasRef.current
-    if (!canvas || !analyserRef.current) return
+    const analyser = analyserRef.current
+    if (!canvas || !analyser) return
+
+    // Ensure canvas matches its displayed size for crisp rendering
+    canvas.width = canvas.clientWidth
+    canvas.height = canvas.clientHeight
 
     const ctx = canvas.getContext('2d')!
-    const bufferLength = analyserRef.current.frequencyBinCount
+    const bufferLength = analyser.frequencyBinCount
     const dataArray = new Uint8Array(bufferLength)
-    analyserRef.current.getByteFrequencyData(dataArray)
+    analyser.getByteFrequencyData(dataArray)
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    const barWidth = (canvas.width / bufferLength) * 2.5
-    let x = 0
-
-    const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0)
-    gradient.addColorStop(0, '#00ffff')
-    gradient.addColorStop(1, '#ff00ff')
-    ctx.fillStyle = gradient
+    const barWidth = canvas.width / bufferLength
 
     for (let i = 0; i < bufferLength; i++) {
       const barHeight = dataArray[i]
-      ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2)
-      x += barWidth + 1
+      const hue = (i / bufferLength) * 360 // rainbow effect by index
+      ctx.fillStyle = `hsl(${hue}, 100%, 50%)`
+      ctx.fillRect(i * barWidth, canvas.height - barHeight, barWidth - 1, barHeight)
     }
 
     animationFrameRef.current = requestAnimationFrame(drawVisualization)
   }, [])
 
+  /**
+   * Initialise audio context & analyser before starting animation loop.
+   */
   const startVisualization = useCallback((): void => {
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext()
       const source = audioContextRef.current.createMediaElementSource(audioRef.current!)
       analyserRef.current = audioContextRef.current.createAnalyser()
       analyserRef.current.fftSize = 256
+      analyserRef.current.smoothingTimeConstant = 0.8 // smooth bars for calmer motion
       source.connect(analyserRef.current)
       analyserRef.current.connect(audioContextRef.current.destination)
     }
