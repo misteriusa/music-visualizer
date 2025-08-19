@@ -5,6 +5,7 @@ An Electron application with React and TypeScript
 ## Features
 
 - Cyberpunk-inspired theme with neon gradients
+- Rainbow frequency-bar visualizer that reacts to your audio
 
 ## Recommended IDE Setup
 
