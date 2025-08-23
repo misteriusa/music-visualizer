@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 import { PlayIcon, PauseIcon, UploadIcon } from '@radix-ui/react-icons'
+import { visualizations, VisualizationName } from './visualizations'
 import './index.css'
 
 function App(): React.JSX.Element {
@@ -14,6 +15,7 @@ function App(): React.JSX.Element {
   const [currentTrack, setCurrentTrack] = useState(0)
   const [progress, setProgress] = useState(0)
   const [audioFile, setAudioFile] = useState<string | null>(null)
+  const [visName, setVisName] = useState<VisualizationName>('rainbowBars')
   const audioRef = useRef<HTMLAudioElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -28,14 +30,13 @@ function App(): React.JSX.Element {
   }, [audioFile])
 
   /**
-   * Render frequency data as colorful bars across the canvas.
+   * Render the selected visualization onto the canvas.
    */
   const drawVisualization = useCallback((): void => {
     const canvas = canvasRef.current
     const analyser = analyserRef.current
     if (!canvas || !analyser) return
 
-    // Ensure canvas matches its displayed size for crisp rendering
     canvas.width = canvas.clientWidth
     canvas.height = canvas.clientHeight
 
@@ -45,17 +46,10 @@ function App(): React.JSX.Element {
     analyser.getByteFrequencyData(dataArray)
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    const barWidth = canvas.width / bufferLength
-
-    for (let i = 0; i < bufferLength; i++) {
-      const barHeight = dataArray[i]
-      const hue = (i / bufferLength) * 360 // rainbow effect by index
-      ctx.fillStyle = `hsl(${hue}, 100%, 50%)`
-      ctx.fillRect(i * barWidth, canvas.height - barHeight, barWidth - 1, barHeight)
-    }
+    visualizations[visName](ctx, dataArray, canvas)
 
     animationFrameRef.current = requestAnimationFrame(drawVisualization)
-  }, [])
+  }, [visName])
 
   /**
    * Initialise audio context & analyser before starting animation loop.
@@ -128,7 +122,17 @@ function App(): React.JSX.Element {
         <PanelResizeHandle />
         <Panel defaultSize={20} minSize={15} className="bg-secondary p-4">
           <h2 className="text-lg font-bold mb-2">Visualizer Controls</h2>
-          {/* Add controls here */}
+          <select
+            value={visName}
+            onChange={(e) => setVisName(e.target.value as VisualizationName)}
+            className="w-full p-2 mb-4 bg-card text-primary"
+          >
+            {Object.keys(visualizations).map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
         </Panel>
       </PanelGroup>
       <div className="bg-card p-4 flex items-center justify-between">
